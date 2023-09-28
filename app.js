@@ -23,7 +23,7 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message })
+  res.status(res.statusCode).json({ message: err.message, stack: err.stack });
 });
 
 module.exports = app

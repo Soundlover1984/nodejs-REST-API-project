@@ -89,6 +89,8 @@ const updateUserSubscription = async (req, res) => {
   res.json(updatedUser);
 };
 
+
+
 module.exports = {
   register: ctrlWrapper(register),
   login: ctrlWrapper(login),
