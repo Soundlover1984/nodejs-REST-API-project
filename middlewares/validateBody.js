@@ -7,7 +7,7 @@ const validateBody = (schema, method) => {
     }
     const { error } = schema.validate(req.body);
     if (error) {
-      let errorMessage = "";
+      let errorMessage = error;
 
       if (method === "POST" && error.details && error.details.length > 0) {
         const missingField = error.details[0].context.key;
