@@ -1,9 +1,17 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 
 const { User } = require("../models/user");
 
 const { HttpError, ctrlWrapper } = require("../helpers");
+
+const path = require("path");
+const fs = require("fs/promises");
+const jimp = require("jimp");
+
+const avatarsDir = path.join(__dirname, "../", "public", "avatars");
+
 
 const { SECRET_KEY } = process.env;
 
@@ -16,9 +24,10 @@ const register = async (req, res) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
+  const avatarURL = gravatar.url(email);
  
 
-  const newUser = await User.create({ ...req.body, password: hashPassword,});
+  const newUser = await User.create({ ...req.body, password: hashPassword, avatarURL});
 
   res.status(201).json({
     email: newUser.email,
@@ -89,6 +98,25 @@ const updateUserSubscription = async (req, res) => {
   res.json(updatedUser);
 };
 
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: tempUpload, originalname } = req.file;
+  const filename = `${_id}_${originalname}`;
+  const resultUpload = path.join(avatarsDir, filename);
+  const img = await jimp.read(tempUpload);
+  await img
+    .autocrop()
+    .cover(250, 250, jimp.HORIZONTAL_ALIGN_CENTER || jimp.VERTICAL_ALIGN_MIDDLE)
+    .writeAsync(tempUpload);
+  await fs.rename(tempUpload, resultUpload);
+  const avatarURL = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
+
+  res.json({
+    avatarURL,
+  });
+};
+
 
 
 module.exports = {
@@ -97,4 +125,5 @@ module.exports = {
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
   updateUserSubscription: ctrlWrapper(updateUserSubscription),
+  updateAvatar: ctrlWrapper(updateAvatar)
 };
