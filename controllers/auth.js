@@ -6,7 +6,7 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 const { BASE_URL } = process.env;
 
-const verificationCode = nanoid();
+const verificationToken= nanoid();
 
 const { User } = require("../models/user");
 
@@ -35,13 +35,13 @@ const register = async (req, res) => {
   const avatarURL = gravatar.url(email);
  
 
-  const newUser = await User.create({ ...req.body, password: hashPassword, avatarURL, verificationCode});
+  const newUser = await User.create({ ...req.body, password: hashPassword, avatarURL, verificationToken});
 
   const verifyEmail = {
     to: email,
     from: "denys.kovtun@meta.ua",
     subject: "Verify email",
-    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${verificationCode}">Click verify email</a>`,
+    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${verificationToken}">Click verify email</a>`,
   };
 
   transport
@@ -142,13 +142,13 @@ const updateAvatar = async (req, res) => {
 
 
 const verifyEmail = async (req, res) => {
-  const { verificationCode } = req.params;
-  const user = await User.findOne({ verificationCode });
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
 
   if (!user) {
     throw HttpError(404, "User not found");
   }
-  await User.findByIdAndUpdate(user._id, { verify: true, verificationCode: null });
+  await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: null });
 
   res.status(200).json({
     message: "Verification successful",
@@ -171,7 +171,7 @@ const resendVerifyEmail = async (req, res, next) => {
     to: email,
     from: "denys.kovtun@meta.ua",
     subject: "Verify email",
-    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${user.verificationCode}">Click verify email</a>`,
+    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${user.verificationToken}">Click verify email</a>`,
   };
 
   transport
