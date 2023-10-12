@@ -2,6 +2,9 @@ const { HttpError } = require("../helpers");
 
 const validateBody = (schema, method) => {
   const func = (req, res, next) => {
+    if (!req.body.email) {
+      return res.status(400).json({ message: "missing required field email" });
+    }
     if (method === "PATCH" && !req.body.favorite) {
       return res.status(400).json({ message: "missing field favorite" });
     }
